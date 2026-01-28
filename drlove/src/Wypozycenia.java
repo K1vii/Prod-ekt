@@ -5,20 +5,20 @@ import java.util.List;
 // Klasa reprezentująca wpis w historii (DTO - Data Transfer Object)
 class Wypozyczenie {
     private Rower rower;
-    private Wypozyczalnia stacja;
+    private Wypozyczalnia wypozyczalnia;
+    private Klient klient; // <--- DODAJ TO POLE
 
-    public Wypozyczenie(Rower rower, Wypozyczalnia stacja) {
+    public Wypozyczenie(Rower rower, Wypozyczalnia wypozyczalnia, Klient klient) {
         this.rower = rower;
-        this.stacja = stacja;
+        this.wypozyczalnia = wypozyczalnia;
+        this.klient = klient; // <--- PRZYPISZ KLIENTA
     }
 
-    public Rower getRower() { // TEGO BRAKOWAŁO - Naprawia błąd getRower
-        return rower;
-    }
+    // Dodaj gettera, żeby Admin mógł go odczytać
+    public Klient getKlient() { return klient; }
 
-    public Wypozyczalnia getWypozyczalnia() {
-        return stacja;
-    }
+    public Rower getRower() { return rower; }
+    public Wypozyczalnia getWypozyczalnia() { return wypozyczalnia; }
 }
 
 // Klasa Klient
@@ -31,8 +31,9 @@ class Klient {
         this.imie = imie;
         this.nazwisko = nazwisko;
     }
+    public String getImie() { return imie; }
+    public String getNazwisko() { return nazwisko; }
 
-    // TEJ METODY BRAKOWAŁO (Błąd 157, 160):
     public List<Wypozyczenie> getMojeWypozyczenia() {
         return mojeWypozyczenia;
     }

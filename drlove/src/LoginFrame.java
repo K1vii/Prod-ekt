@@ -33,18 +33,18 @@ public class LoginFrame extends JFrame {
             String haslo = new String(hasloField.getPassword());
 
             if (login.equals("admin") && haslo.equals("admin")) {
-                dispose(); // Zamknij okno logowania
-                new WypozyczalniaRowerowApp(true).setVisible(true);
+                dispose();
+                new WypozyczalniaRowerowApp(true, "Admin", "Systemowy").setVisible(true);
             } else if (login.equals("user") && haslo.equals("user")) {
                 dispose();
-                new WypozyczalniaRowerowApp(false).setVisible(true);
+                // Jan Kowalski
+                new WypozyczalniaRowerowApp(false, "Jan", "Kowalski").setVisible(true);
+            } else if (login.equals("user2") && haslo.equals("user2")) {
+                dispose();
+                // Anna Nowak
+                new WypozyczalniaRowerowApp(false, "Anna", "Nowak").setVisible(true);
             } else {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Zły login lub hasło",
-                        "Błąd",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                JOptionPane.showMessageDialog(this, "Zły login lub hasło", "Błąd", JOptionPane.ERROR_MESSAGE);
             }
         });
     }

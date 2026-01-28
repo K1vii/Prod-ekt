@@ -10,12 +10,14 @@ class Rower {
     private String imagePath;
     private String opis;
 
+
     public Rower(int id, String model, String imagePath, String opis) {
         this.id = id;
         this.model = model;
         this.imagePath = imagePath;
         this.opis = opis;
         this.czyDostepny = true;
+
     }
 
     // Gettery i Settery pozwalają kontrolować dostęp do danych

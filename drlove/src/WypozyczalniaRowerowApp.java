@@ -2,11 +2,18 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WypozyczalniaRowerowApp extends JFrame {
-    // === POLA KLASY ===
-    private final Map<String, Wypozyczalnia> stacje = new HashMap<>();
-    private final Klient aktualnyKlient = new Klient("Jan", "Kowalski");
+    private static final Map<String, Klient> bazaKlientow = new HashMap<>();
+    private static boolean klienciZainicjalizowani = false;
+    private static final Map<String, Wypozyczalnia> stacje = new HashMap<>();
+    private static boolean stacjeZainicjalizowane = false;
+    private Klient aktualnyKlient; // Pole inicjalizowane w konstruktorze
+
+    // Globalna historia dla Admina - static, aby była wspólna dla wszystkich sesji
+    private static final List<Wypozyczenie> historiaGlobalna = new ArrayList<>();
 
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel contentPanel = new JPanel(cardLayout);
@@ -16,6 +23,7 @@ public class WypozyczalniaRowerowApp extends JFrame {
     private boolean sidebarVisible = true;
     private int sidebarWidth = 200;
     private int rightSidebarWidth = 0;
+    private boolean czyAdmin;
 
     private Timer sidebarTimer;
     private Timer rightSidebarTimer;
@@ -24,34 +32,53 @@ public class WypozyczalniaRowerowApp extends JFrame {
     private final int SIDEBAR_COLLAPSED = 50;
     private final int RIGHT_SIDEBAR_TARGET_WIDTH = 300;
 
-    public WypozyczalniaRowerowApp(boolean czyAdmin) {
+    public WypozyczalniaRowerowApp(boolean czyAdmin, String imie, String nazwisko) {
+        this.czyAdmin = czyAdmin;
+        this.aktualnyKlient = new Klient(imie, nazwisko);
+
         setTitle("System Rowerowy - " + (czyAdmin ? "ADMIN" : "UŻYTKOWNIK"));
         setSize(1100, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // 1. INICJALIZACJA DANYCH
         inicjalizujStacje();
+        inicjalizujKlientow();
 
-        // 2. SIDEBAR (LEWY)
+        String klucz = imie + "_" + nazwisko;
+        this.aktualnyKlient = bazaKlientow.getOrDefault(klucz, new Klient(imie, nazwisko));
+
+        // ===== SIDEBAR (LEWY) =====
         sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setPreferredSize(new Dimension(sidebarWidth, getHeight()));
         sidebar.setBackground(new Color(45, 45, 45));
 
-        setupSidebar(czyAdmin);
+        JButton toggle = createSidebarButton("☰");
+        toggle.addActionListener(e -> toggleSidebar());
+        sidebar.add(toggle);
 
-        // 3. RIGHT SIDEBAR (DYNAMICZNY)
+        sidebar.add(menuButton("Mapa", "MAPA"));
+
+        // Nazwa przycisku zależna od roli
+        String tekstWypozyczen = czyAdmin ? "Monitor Wypożyczeń" : "Moje wypożyczenia";
+        sidebar.add(menuButton(tekstWypozyczen, "WYPOZYCZENIA"));
+
+        sidebar.add(menuButton("Nasze rowery", "ROWERY"));
+        sidebar.add(menuButton("Regulamin", "REGULAMIN"));
+        sidebar.add(menuButton("Kontakt", "KONTAKT"));
+        sidebar.add(Box.createVerticalGlue());
+        sidebar.add(wylogujButton());
+
+        // ===== RIGHT SIDEBAR (DYNAMICZNY) =====
         rightSidebar = new JPanel(new BorderLayout());
         rightSidebar.setPreferredSize(new Dimension(0, getHeight()));
         rightSidebar.setBackground(new Color(245, 245, 245));
         rightSidebar.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, Color.LIGHT_GRAY));
 
-        // 4. CONTENT PANEL
-        setupContentPanel(czyAdmin);
+        // ===== CONTENT PANEL =====
+        setupContentPanel();
 
-        // DODANIE DO OKNA
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
         add(rightSidebar, BorderLayout.EAST);
@@ -60,6 +87,8 @@ public class WypozyczalniaRowerowApp extends JFrame {
     }
 
     private void inicjalizujStacje() {
+        if (stacjeZainicjalizowane) return; // Jeśli stacje już są w pamięci, nic nie rób
+
         Wypozyczalnia stacjaA = new Wypozyczalnia("Baza rowerów A");
         stacjaA.dodajRower(new Rower(101, "Góral Kross", "rower2.jfif", "Super amortyzatory."));
         stacjaA.dodajRower(new Rower(102, "Miejski Gazelle", "rower1.jfif", "Koszyk na zakupy."));
@@ -73,23 +102,21 @@ public class WypozyczalniaRowerowApp extends JFrame {
         stacje.put("Baza rowerów A", stacjaA);
         stacje.put("Baza rowerów B", stacjaB);
         stacje.put("Baza rowerów C", stacjaC);
+
+        stacjeZainicjalizowane = true; // Zaznaczamy, że baza jest gotowa
+    }
+    private void inicjalizujKlientow() {
+        if (klienciZainicjalizowani) return;
+
+        // Tworzymy stałe obiekty klientów, które będą żyć przez cały czas działania programu
+        bazaKlientow.put("Jan_Kowalski", new Klient("Jan", "Kowalski"));
+        bazaKlientow.put("Anna_Nowak", new Klient("Anna", "Nowak"));
+        bazaKlientow.put("Admin_Systemowy", new Klient("Admin", "Systemowy"));
+
+        klienciZainicjalizowani = true;
     }
 
-    private void setupSidebar(boolean czyAdmin) {
-        JButton toggle = createSidebarButton("☰");
-        toggle.addActionListener(e -> toggleSidebar());
-
-        sidebar.add(toggle);
-        sidebar.add(menuButton("Mapa", "MAPA"));
-        sidebar.add(menuButton("Moje wypożyczenia", "WYPOZYCZENIA"));
-        sidebar.add(menuButton("Nasze rowery", "ROWERY"));
-        sidebar.add(menuButton("Regulamin", "REGULAMIN"));
-        sidebar.add(menuButton("Kontakt", "KONTAKT"));
-        sidebar.add(Box.createVerticalGlue());
-        sidebar.add(wylogujButton());
-    }
-
-    private void setupContentPanel(boolean czyAdmin) {
+    private void setupContentPanel() {
         contentPanel.add(new InteraktywnaMapaPanel(czyAdmin, this), "MAPA");
         contentPanel.add(new PanelNaszeRowery(), "ROWERY");
 
@@ -97,25 +124,121 @@ public class WypozyczalniaRowerowApp extends JFrame {
         contentPanel.add(wypozyczeniaWrapper, "WYPOZYCZENIA");
 
         contentPanel.add(simplePanel("Kontakt:\nemail: kontakt@rowery.pl\ntel: 123 456 789"), "KONTAKT");
-        contentPanel.add(simplePanel("REGULAMIN\n1. Dbaj o rower.\n2. Zwracaj w terminie.\n3. Miłej jazdy!"), "REGULAMIN");
+        contentPanel.add(simplePanel("REGULAMIN\n1. Dbaj o rower.\n2. Zwracaj w terminie."), "REGULAMIN");
 
-        odswiezMojeWypozyczenia(); // Pierwsze ładowanie
+        odswiezMojeWypozyczenia();
     }
 
-    // === LOGIKA UI ===
+    public void odswiezMojeWypozyczenia() {
+        JPanel wrapper = (JPanel) contentPanel.getComponent(2);
+        wrapper.removeAll();
+        wrapper.setLayout(new BorderLayout());
+
+        JPanel lista = new JPanel();
+        lista.setLayout(new BoxLayout(lista, BoxLayout.Y_AXIS));
+        lista.setBackground(Color.WHITE);
+        lista.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        if (czyAdmin) {
+            // === WIDOK ADMINA ===
+            JLabel title = new JLabel("<html><h1>📊 Monitor Systemu</h1></html>");
+            title.setAlignmentX(Component.LEFT_ALIGNMENT);
+            lista.add(title);
+            lista.add(Box.createVerticalStrut(20));
+
+            if (historiaGlobalna.isEmpty()) {
+                lista.add(new JLabel("Brak aktywnych wypożyczeń."));
+            } else {
+                JPanel header = new JPanel(new GridLayout(1, 3));
+                header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+                header.setBackground(new Color(230, 230, 230));
+                header.add(new JLabel("  Użytkownik"));
+                header.add(new JLabel("  Rower"));
+                header.add(new JLabel("  Lokalizacja"));
+                header.setAlignmentX(Component.LEFT_ALIGNMENT);
+                lista.add(header);
+                lista.add(Box.createVerticalStrut(10));
+
+                for (Wypozyczenie w : historiaGlobalna) {
+                    JPanel row = new JPanel(new GridLayout(1, 3));
+                    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+                    row.setBackground(Color.WHITE);
+                    row.setBorder(BorderFactory.createCompoundBorder(
+                            BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+                            BorderFactory.createEmptyBorder(0, 10, 0, 10)
+                    ));
+
+                    // POBIERANIE DANYCH KLIENTA Z WYPOZYCZENIA
+                    row.add(new JLabel("👤 " + w.getKlient().getImie() + " " + w.getKlient().getNazwisko()));
+                    row.add(new JLabel("🚲 " + w.getRower().getModel()));
+                    row.add(new JLabel("📍 " + w.getWypozyczalnia().getNazwa()));
+
+                    row.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    lista.add(row);
+                    lista.add(Box.createVerticalStrut(5));
+                }
+            }
+        } else {
+            // === WIDOK USERA ===
+            JLabel title = new JLabel("<html><h1>Moje aktywne wypożyczenia</h1></html>");
+            title.setAlignmentX(Component.LEFT_ALIGNMENT);
+            lista.add(title);
+            lista.add(Box.createVerticalStrut(20));
+
+            if (aktualnyKlient.getMojeWypozyczenia().isEmpty()) {
+                lista.add(new JLabel("Nie masz obecnie wypożyczonych rowerów."));
+            } else {
+                for (Wypozyczenie w : aktualnyKlient.getMojeWypozyczenia()) {
+                    lista.add(stworzWierszWypozyczenia(w));
+                    lista.add(Box.createVerticalStrut(10));
+                }
+            }
+        }
+
+        JScrollPane scroll = new JScrollPane(lista);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        wrapper.add(scroll, BorderLayout.CENTER);
+
+        wrapper.revalidate();
+        wrapper.repaint();
+    }
+
+    private JPanel stworzWierszWypozyczenia(Wypozyczenie w) {
+        JPanel item = new JPanel(new BorderLayout(15, 0));
+        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        item.setPreferredSize(new Dimension(900, 60));
+        item.setBackground(new Color(245, 245, 245));
+        item.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+
+        JLabel desc = new JLabel("🚲 " + w.getRower().getModel() + " | Lokalizacja: " + w.getWypozyczalnia().getNazwa());
+        item.add(desc, BorderLayout.CENTER);
+
+        JButton zwrotBtn = new JButton("Zwróć");
+        zwrotBtn.addActionListener(e -> {
+            w.getRower().setDostepny(true);
+            aktualnyKlient.usunWypozyczenie(w);
+            historiaGlobalna.remove(w);
+            JOptionPane.showMessageDialog(this, "Rower zwrócony pomyślnie!");
+            odswiezMojeWypozyczenia();
+        });
+        item.add(zwrotBtn, BorderLayout.EAST);
+
+        item.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return item;
+    }
 
     public void pokazPanelStacji(String nazwaStacji) {
         Wypozyczalnia stacja = stacje.get(nazwaStacji);
         if (stacja == null) return;
 
         rightSidebar.removeAll();
-
-        // Nagłówek
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(60, 60, 60));
-        JLabel title = new JLabel("  " + nazwaStacji, JLabel.LEFT);
+        JLabel title = new JLabel("  " + nazwaStacji);
         title.setForeground(Color.WHITE);
-        title.setFont(new Font("Arial", Font.BOLD, 14));
         header.add(title, BorderLayout.CENTER);
 
         JButton closeBtn = new JButton("X");
@@ -123,29 +246,19 @@ public class WypozyczalniaRowerowApp extends JFrame {
         header.add(closeBtn, BorderLayout.EAST);
         rightSidebar.add(header, BorderLayout.NORTH);
 
-        // Lista rowerów
         JPanel lista = new JPanel();
         lista.setLayout(new BoxLayout(lista, BoxLayout.Y_AXIS));
-        lista.setBackground(Color.WHITE);
-
         for (Rower r : stacja.getFlota()) {
             lista.add(stworzWizualnyRower(r, stacja));
         }
-
         rightSidebar.add(new JScrollPane(lista), BorderLayout.CENTER);
 
-        // Animacja wysuwania
-        if (rightSidebarWidth == 0) {
-            runRightSidebarAnimation(true);
-        } else {
-            rightSidebar.revalidate();
-            rightSidebar.repaint();
-        }
+        if (rightSidebarWidth == 0) runRightSidebarAnimation(true);
+        else { rightSidebar.revalidate(); rightSidebar.repaint(); }
     }
 
     private void runRightSidebarAnimation(boolean open) {
         if (rightSidebarTimer != null && rightSidebarTimer.isRunning()) rightSidebarTimer.stop();
-
         rightSidebarTimer = new Timer(10, e -> {
             if (open) {
                 rightSidebarWidth += 20;
@@ -167,48 +280,11 @@ public class WypozyczalniaRowerowApp extends JFrame {
         rightSidebarTimer.start();
     }
 
-    public void schowajPrawyPanel() {
-        runRightSidebarAnimation(false);
-    }
-
-    public void odswiezMojeWypozyczenia() {
-        // Wyciągamy panel WYPOZYCZENIA (indeks 2)
-        JPanel wrapper = (JPanel) contentPanel.getComponent(2);
-        wrapper.removeAll();
-
-        JPanel lista = new JPanel();
-        lista.setLayout(new BoxLayout(lista, BoxLayout.Y_AXIS));
-        lista.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        if (aktualnyKlient.getMojeWypozyczenia().isEmpty()) {
-            lista.add(new JLabel("<html><h2>Brak aktywnych wypożyczeń.</h2></html>"));
-        } else {
-            for (Wypozyczenie w : aktualnyKlient.getMojeWypozyczenia()) {
-                JPanel item = new JPanel(new BorderLayout(10, 10));
-                item.setMaximumSize(new Dimension(800, 50));
-                item.add(new JLabel("🚲 " + w.getRower().getModel() + " [" + w.getWypozyczalnia().getNazwa() + "]"), BorderLayout.CENTER);
-
-                JButton zwrotBtn = new JButton("Zwróć");
-                zwrotBtn.addActionListener(e -> {
-                    w.getRower().setDostepny(true);
-                    aktualnyKlient.usunWypozyczenie(w);
-                    JOptionPane.showMessageDialog(this, "Rower zwrócony!");
-                    odswiezMojeWypozyczenia();
-                });
-                item.add(zwrotBtn, BorderLayout.EAST);
-                lista.add(item);
-                lista.add(Box.createVerticalStrut(10));
-            }
-        }
-        wrapper.add(new JScrollPane(lista), BorderLayout.CENTER);
-        wrapper.revalidate();
-        wrapper.repaint();
-    }
+    public void schowajPrawyPanel() { runRightSidebarAnimation(false); }
 
     private void toggleSidebar() {
         if (sidebarTimer != null && sidebarTimer.isRunning()) return;
         int target = sidebarVisible ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
-
         sidebarTimer = new Timer(5, e -> {
             if (sidebarWidth != target) {
                 sidebarWidth += (sidebarVisible ? -10 : 10);
@@ -224,8 +300,6 @@ public class WypozyczalniaRowerowApp extends JFrame {
         sidebarTimer.start();
     }
 
-    // === HELPERY (PRZYCISKI I PANELE) ===
-
     private JButton createSidebarButton(String text) {
         JButton btn = new JButton(text);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
@@ -233,7 +307,6 @@ public class WypozyczalniaRowerowApp extends JFrame {
         btn.setBorderPainted(false);
         btn.setBackground(new Color(60, 60, 60));
         btn.setForeground(Color.WHITE);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
 
@@ -249,38 +322,43 @@ public class WypozyczalniaRowerowApp extends JFrame {
     private JButton wylogujButton() {
         JButton btn = createSidebarButton("Wyloguj");
         btn.setForeground(new Color(255, 100, 100));
-        btn.addActionListener(e -> {
-            dispose();
-            new LoginFrame().setVisible(true);
-        });
+        btn.addActionListener(e -> { dispose(); new LoginFrame().setVisible(true); });
         return btn;
     }
 
     private JPanel stworzWizualnyRower(Rower r, Wypozyczalnia stacja) {
-        JPanel p = new JPanel(new BorderLayout(15, 5));
-        p.setMaximumSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH, 100));
+        // Główny panel - BorderLayout wypełnia całą dostępną szerokość
+        JPanel p = new JPanel(new BorderLayout(15, 0));
+        p.setMaximumSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 10, 80));
+        p.setPreferredSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 10, 80));
         p.setBackground(Color.WHITE);
         p.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 
-        // Obrazek
+        // LEWA STRONA (WEST): Obrazek
         ImageIcon icon = new ImageIcon(new ImageIcon(r.getImagePath()).getImage().getScaledInstance(70, 45, Image.SCALE_SMOOTH));
-        JLabel imgLabel = new JLabel(icon);
-        p.add(imgLabel, BorderLayout.WEST);
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0)); // Odstęp od lewej krawędzi
+        p.add(iconLabel, BorderLayout.WEST);
 
-        // Opis
+        // ŚRODEK (CENTER): Nazwa roweru (Wypełnia pustkę)
+        // Usunięcie div width:70px naprawi problem "znikającej nazwy"
         JLabel nameLabel = new JLabel("<html><b>" + r.getModel() + "</b></html>");
+        nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10)); // Odstępy od ikony i przycisku
         p.add(nameLabel, BorderLayout.CENTER);
 
-        // Przycisk
+        // PRAWA STRONA (EAST): Przycisk
         JButton rentBtn = new JButton(r.isDostepny() ? "Wypożycz" : "Zajęty");
         rentBtn.setEnabled(r.isDostepny());
+        rentBtn.setPreferredSize(new Dimension(100, 80)); // Stała szerokość guzika
+
         rentBtn.addActionListener(e -> {
             if (aktualnyKlient.czyPosiadaRower(r.getId())) {
                 JOptionPane.showMessageDialog(this, "Masz już ten rower!");
             } else {
                 r.setDostepny(false);
-                aktualnyKlient.dodajDoHistorii(new Wypozyczenie(r, stacja));
-                JOptionPane.showMessageDialog(this, "Wypożyczono: " + r.getModel());
+                Wypozyczenie nowe = new Wypozyczenie(r, stacja, aktualnyKlient);
+                aktualnyKlient.dodajDoHistorii(nowe); // Poprawiona nazwa metody
+                historiaGlobalna.add(nowe);
                 pokazPanelStacji(stacja.getNazwa());
                 odswiezMojeWypozyczenia();
             }
@@ -295,9 +373,6 @@ public class WypozyczalniaRowerowApp extends JFrame {
         p.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         JTextArea area = new JTextArea(text);
         area.setEditable(false);
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setFont(new Font("Monospaced", Font.PLAIN, 16));
         p.add(new JScrollPane(area), BorderLayout.CENTER);
         return p;
     }
