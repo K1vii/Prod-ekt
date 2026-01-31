@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -34,7 +35,6 @@ public class WypozyczalniaRowerowApp extends JFrame {
 
     public WypozyczalniaRowerowApp(boolean czyAdmin, String imie, String nazwisko) {
         this.czyAdmin = czyAdmin;
-        this.aktualnyKlient = new Klient(imie, nazwisko);
 
         setTitle("System Rowerowy - " + (czyAdmin ? "ADMIN" : "UŻYTKOWNIK"));
         setSize(1100, 700);
@@ -47,6 +47,8 @@ public class WypozyczalniaRowerowApp extends JFrame {
 
         String klucz = imie + "_" + nazwisko;
         this.aktualnyKlient = bazaKlientow.getOrDefault(klucz, new Klient(imie, nazwisko));
+
+        wczytajWypozyczeniaZPliku();
 
         // ===== SIDEBAR (LEWY) =====
         sidebar = new JPanel();
@@ -141,9 +143,19 @@ public class WypozyczalniaRowerowApp extends JFrame {
 
         if (czyAdmin) {
             // === WIDOK ADMINA ===
-            JLabel title = new JLabel("<html><h1>📊 Monitor Systemu</h1></html>");
+            JLabel title = new JLabel("<html><h1>📊 Monitor Systemu (ADMIN)</h1></html>");
             title.setAlignmentX(Component.LEFT_ALIGNMENT);
             lista.add(title);
+
+            // === TO JEST TWÓJ PUNKT 3 ===
+            JButton refreshBtn = new JButton("🔄 Synchronizuj z bazą plikową");
+            refreshBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+            refreshBtn.addActionListener(e -> {
+                wczytajWypozyczeniaZPliku(); // Metoda odczytująca plik
+                odswiezMojeWypozyczenia();    // Odświeżenie widoku
+                JOptionPane.showMessageDialog(this, "Dane odświeżone!");
+            });
+            lista.add(refreshBtn);
             lista.add(Box.createVerticalStrut(20));
 
             if (historiaGlobalna.isEmpty()) {
@@ -167,6 +179,7 @@ public class WypozyczalniaRowerowApp extends JFrame {
                             BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
                             BorderFactory.createEmptyBorder(0, 10, 0, 10)
                     ));
+
 
                     // POBIERANIE DANYCH KLIENTA Z WYPOZYCZENIA
                     row.add(new JLabel("👤 " + w.getKlient().getImie() + " " + w.getKlient().getNazwisko()));
@@ -221,6 +234,7 @@ public class WypozyczalniaRowerowApp extends JFrame {
             w.getRower().setDostepny(true);
             aktualnyKlient.usunWypozyczenie(w);
             historiaGlobalna.remove(w);
+            zapiszWszystkoDoPliku();
             JOptionPane.showMessageDialog(this, "Rower zwrócony pomyślnie!");
             odswiezMojeWypozyczenia();
         });
@@ -327,41 +341,36 @@ public class WypozyczalniaRowerowApp extends JFrame {
     }
 
     private JPanel stworzWizualnyRower(Rower r, Wypozyczalnia stacja) {
-        // Główny panel - BorderLayout wypełnia całą dostępną szerokość
         JPanel p = new JPanel(new BorderLayout(15, 0));
-        p.setMaximumSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 10, 80));
-        p.setPreferredSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 10, 80));
+        p.setMaximumSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 15, 80));
+        p.setPreferredSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 15, 80));
         p.setBackground(Color.WHITE);
         p.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 
-        // LEWA STRONA (WEST): Obrazek
+        // Ikona (Lewo)
         ImageIcon icon = new ImageIcon(new ImageIcon(r.getImagePath()).getImage().getScaledInstance(70, 45, Image.SCALE_SMOOTH));
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0)); // Odstęp od lewej krawędzi
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         p.add(iconLabel, BorderLayout.WEST);
 
-        // ŚRODEK (CENTER): Nazwa roweru (Wypełnia pustkę)
-        // Usunięcie div width:70px naprawi problem "znikającej nazwy"
-        JLabel nameLabel = new JLabel("<html><b>" + r.getModel() + "</b></html>");
-        nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10)); // Odstępy od ikony i przycisku
+        // Nazwa (Środek - Wypełnia puste pole)
+        // Usunąłem width:70px, żeby Specialized nie zniknął!
+        JLabel nameLabel = new JLabel("<html><div style='padding-left:10px;'><b>" + r.getModel() + "</b></div></html>");
         p.add(nameLabel, BorderLayout.CENTER);
 
-        // PRAWA STRONA (EAST): Przycisk
+        // Przycisk (Prawo)
         JButton rentBtn = new JButton(r.isDostepny() ? "Wypożycz" : "Zajęty");
         rentBtn.setEnabled(r.isDostepny());
-        rentBtn.setPreferredSize(new Dimension(100, 80)); // Stała szerokość guzika
+        rentBtn.setPreferredSize(new Dimension(100, 80));
 
         rentBtn.addActionListener(e -> {
-            if (aktualnyKlient.czyPosiadaRower(r.getId())) {
-                JOptionPane.showMessageDialog(this, "Masz już ten rower!");
-            } else {
-                r.setDostepny(false);
-                Wypozyczenie nowe = new Wypozyczenie(r, stacja, aktualnyKlient);
-                aktualnyKlient.dodajDoHistorii(nowe); // Poprawiona nazwa metody
-                historiaGlobalna.add(nowe);
-                pokazPanelStacji(stacja.getNazwa());
-                odswiezMojeWypozyczenia();
-            }
+            r.setDostepny(false);
+            Wypozyczenie nowe = new Wypozyczenie(r, stacja, aktualnyKlient);
+            aktualnyKlient.dodajDoHistorii(nowe);
+            historiaGlobalna.add(nowe);
+            zapiszWszystkoDoPliku();
+            pokazPanelStacji(stacja.getNazwa());
+            odswiezMojeWypozyczenia();
         });
         p.add(rentBtn, BorderLayout.EAST);
 
@@ -375,5 +384,72 @@ public class WypozyczalniaRowerowApp extends JFrame {
         area.setEditable(false);
         p.add(new JScrollPane(area), BorderLayout.CENTER);
         return p;
+    }
+    private void zapiszWszystkoDoPliku() {
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("wypozyczenia.txt", false)))) { // false = nadpisz plik
+            for (Wypozyczenie w : historiaGlobalna) {
+                out.println(w.getKlient().getImie() + ";" +
+                        w.getKlient().getNazwisko() + ";" +
+                        w.getRower().getModel() + ";" +
+                        w.getWypozyczalnia().getNazwa());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void wczytajWypozyczeniaZPliku() {
+        // 1. CZYŚCIMY WSZYSTKO, żeby uniknąć duplikatów przy przelogowaniu
+        historiaGlobalna.clear();
+
+        // Czyścimy listy u każdego klienta w statycznej bazie
+        for (Klient k : bazaKlientow.values()) {
+            // Zakładam, że masz metodę getMojeWypozyczenia() zwracającą listę
+            k.getMojeWypozyczenia().clear();
+        }
+
+        // Resetujemy statusy rowerów na stacjach (żeby nie były "Zajęte" na stałe)
+        for (Wypozyczalnia s : stacje.values()) {
+            for (Rower r : s.getFlota()) {
+                r.setDostepny(true);
+            }
+        }
+
+        File plik = new File("wypozyczenia.txt");
+        if (!plik.exists()) return;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(plik))) {
+            String linia;
+            while ((linia = br.readLine()) != null) {
+                String[] d = linia.split(";");
+                if (d.length < 4) continue;
+
+                Wypozyczalnia st = stacje.get(d[3]);
+                if (st != null) {
+                    for (Rower r : st.getFlota()) {
+                        if (r.getModel().equals(d[2])) {
+                            r.setDostepny(false);
+
+                            String kluczKlienta = d[0] + "_" + d[1];
+                            Klient kl = bazaKlientow.get(kluczKlienta);
+
+                            if (kl == null) {
+                                kl = new Klient(d[0], d[1]);
+                                bazaKlientow.put(kluczKlienta, kl);
+                            }
+
+                            Wypozyczenie w = new Wypozyczenie(r, st, kl);
+
+                            // Dodajemy do historii tylko jeśli jeszcze jej tam nie ma
+                            // (choć clear() powyżej już to załatwił)
+                            historiaGlobalna.add(w);
+                            kl.dodajDoHistorii(w);
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

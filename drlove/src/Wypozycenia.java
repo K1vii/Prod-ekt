@@ -19,6 +19,7 @@ class Wypozyczenie {
 
     public Rower getRower() { return rower; }
     public Wypozyczalnia getWypozyczalnia() { return wypozyczalnia; }
+    public Wypozyczalnia getStacja() { return wypozyczalnia; }
 }
 
 // Klasa Klient
