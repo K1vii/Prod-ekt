@@ -150,6 +150,7 @@ public class WypozyczalniaRowerowApp extends JFrame {
         lista.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         if (czyAdmin) {
+            // --- LOGIKA ADMINA ---
             JLabel title = new JLabel("<html><h1>📊 Monitor Systemu (ADMIN)</h1></html>");
             title.setAlignmentX(Component.LEFT_ALIGNMENT);
             lista.add(title);
@@ -164,39 +165,46 @@ public class WypozyczalniaRowerowApp extends JFrame {
             if (historiaGlobalna.isEmpty()) {
                 lista.add(new JLabel("Brak aktywnych wypożyczeń."));
             } else {
-                //Nagłówek
                 JPanel header = new JPanel(new GridLayout(1, 3));
                 header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
                 header.setBackground(new Color(230, 230, 230));
                 header.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-                // Pod nagłówkiem
                 header.add(new JLabel("Użytkownik", SwingConstants.LEFT));
                 header.add(new JLabel("Rower", SwingConstants.LEFT));
                 header.add(new JLabel("Lokalizacja", SwingConstants.LEFT));
-
                 header.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 10));
 
                 lista.add(header);
                 lista.add(Box.createVerticalStrut(10));
 
-                // wiersze
                 for (Wypozyczenie w : historiaGlobalna) {
                     JPanel row = new JPanel(new GridLayout(1, 3));
                     row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
                     row.setBackground(Color.WHITE);
                     row.setAlignmentX(Component.LEFT_ALIGNMENT);
-
                     row.setBorder(BorderFactory.createCompoundBorder(
                             BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
                             BorderFactory.createEmptyBorder(0, 15, 0, 10)
                     ));
-
                     row.add(new JLabel("👤 " + w.getKlient().getImie() + " " + w.getKlient().getNazwisko()));
                     row.add(new JLabel("🚲 " + w.getRower().getModel()));
                     row.add(new JLabel("📍 " + w.getWypozyczalnia().getNazwa()));
-
                     lista.add(row);
+                }
+            }
+        } else {
+            // Logika dla usera
+            JLabel title = new JLabel("<html><h1>Moje aktywne wypożyczenia</h1></html>");
+            title.setAlignmentX(Component.LEFT_ALIGNMENT);
+            lista.add(title);
+            lista.add(Box.createVerticalStrut(20));
+
+            if (aktualnyKlient.getMojeWypozyczenia().isEmpty()) {
+                lista.add(new JLabel("Nie masz obecnie wypożyczonych rowerów."));
+            } else {
+                for (Wypozyczenie w : aktualnyKlient.getMojeWypozyczenia()) {
+                    lista.add(stworzWierszWypozyczenia(w));
+                    lista.add(Box.createVerticalStrut(10));
                 }
             }
         }
@@ -211,14 +219,24 @@ public class WypozyczalniaRowerowApp extends JFrame {
     }
 
     private JPanel stworzWierszWypozyczenia(Wypozyczenie w) {
-        JPanel item = new JPanel(new BorderLayout(15, 0));
-        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        item.setPreferredSize(new Dimension(900, 60));
-        item.setBackground(new Color(245, 245, 245));
-        item.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), BorderFactory.createEmptyBorder(10, 15, 10, 15)));
+        // Główny kontener
+        JPanel rowContainer = new JPanel();
+        rowContainer.setLayout(new BoxLayout(rowContainer, BoxLayout.X_AXIS));
+        rowContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
+        rowContainer.setOpaque(false);
+
+        // Sama karta wypożyczenia
+        JPanel card = new JPanel(new BorderLayout(15, 0));
+        card.setMaximumSize(new Dimension(1000, 60));
+        card.setPreferredSize(new Dimension(1000, 60));
+        card.setBackground(new Color(245, 245, 245));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
 
         JLabel desc = new JLabel("🚲 " + w.getRower().getModel() + " | Lokalizacja: " + w.getWypozyczalnia().getNazwa());
-        item.add(desc, BorderLayout.CENTER);
+        card.add(desc, BorderLayout.CENTER);
 
         JButton zwrotBtn = new JButton("Zwróć");
         zwrotBtn.addActionListener(e -> {
@@ -229,8 +247,12 @@ public class WypozyczalniaRowerowApp extends JFrame {
             JOptionPane.showMessageDialog(this, "Rower zwrócony pomyślnie!");
             odswiezMojeWypozyczenia();
         });
-        item.add(zwrotBtn, BorderLayout.EAST);
-        return item;
+        card.add(zwrotBtn, BorderLayout.EAST);
+
+        rowContainer.add(card);
+        rowContainer.add(Box.createHorizontalGlue()); // To trzyma kartę przy lewej stronie
+
+        return rowContainer;
     }
 
     public void pokazPanelStacji(String nazwaStacji) {
