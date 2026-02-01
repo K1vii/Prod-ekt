@@ -26,12 +26,16 @@ public class InteraktywnaMapaPanel extends JPanel {
         this.setPreferredSize(new Dimension(BASE_WIDTH, BASE_HEIGHT));
 
         this.mapa = new ImageIcon("mapa.png").getImage();
-        this.markerIcon = new ImageIcon("marker_icon.png");
+
+        //marker i przeskalowanie go
+        ImageIcon originalIcon = new ImageIcon("marker_icon.png");
+        Image scaledImage = originalIcon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+        this.markerIcon = new ImageIcon(scaledImage);
 
         // Dodajemy dane markerów do listy
-        dodajMarker("Baza rowerów A", 470, 140);
-        dodajMarker("Baza rowerów B", 240, 200);
-        dodajMarker("Baza rowerów C", 350, 350);
+        dodajMarker("Baza rowerów A", 750, 270);
+        dodajMarker("Baza rowerów B", 250, 155);
+        dodajMarker("Baza rowerów C", 330, 450);
 
         // KLUCZ: Listener, który reaguje na zmianę rozmiaru panelu (np. przy wysuwaniu paska)
         this.addComponentListener(new ComponentAdapter() {
@@ -44,7 +48,12 @@ public class InteraktywnaMapaPanel extends JPanel {
 
     private void dodajMarker(String nazwa, int x, int y) {
         JButton markerBtn = new JButton(this.markerIcon);
-        // ... reszta stylu przycisku ...
+
+        markerBtn.setContentAreaFilled(false); // Wyłącza malowanie tła przycisku
+        markerBtn.setBorderPainted(false);     // Wyłącza ramkę dookoła
+        markerBtn.setFocusPainted(false);      // Wyłącza linię zaznaczenia po kliknięciu
+
+        markerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // kursor rączki
 
         markerBtn.addActionListener((e) -> {
             System.out.println(">>> KLIKNIĘTO MARKER: " + nazwa); // LOG 1

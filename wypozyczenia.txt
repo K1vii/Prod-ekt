@@ -1,1 +1,2 @@
 Anna;Nowak;Elektryczny Specialized;Baza rowerów C
+Jan;Kowalski;Trek E-Bike;Baza rowerów B

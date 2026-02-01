@@ -92,14 +92,14 @@ public class WypozyczalniaRowerowApp extends JFrame {
         if (stacjeZainicjalizowane) return; // Jeśli stacje już są w pamięci, nic nie rób
 
         Wypozyczalnia stacjaA = new Wypozyczalnia("Baza rowerów A");
-        stacjaA.dodajRower(new Rower(101, "Góral Kross", "rower2.jfif", "Super amortyzatory."));
-        stacjaA.dodajRower(new Rower(102, "Miejski Gazelle", "rower1.jfif", "Koszyk na zakupy."));
+        stacjaA.dodajRower(new Rower(101, "Góral Kross", "rower2.png", "Super amortyzatory."));
+        stacjaA.dodajRower(new Rower(102, "Miejski Gazelle", "rower1.png", "Koszyk na zakupy."));
 
         Wypozyczalnia stacjaB = new Wypozyczalnia("Baza rowerów B");
-        stacjaB.dodajRower(new Rower(201, "Szosa Trek", "rower3.jfif", "Lekka rama, szybkie opony."));
+        stacjaB.dodajRower(new Rower(201, "Trek E-Bike", "rower4.png", "Lekka rama, szybkie opony, electrico."));
 
         Wypozyczalnia stacjaC = new Wypozyczalnia("Baza rowerów C");
-        stacjaC.dodajRower(new Rower(301, "Elektryczny Specialized", "rower1.jfif", "Zasięg do 100km."));
+        stacjaC.dodajRower(new Rower(301, "Elektryczny Specialized", "rower3.png", "Zasięg do 100km."));
 
         stacje.put("Baza rowerów A", stacjaA);
         stacje.put("Baza rowerów B", stacjaB);
@@ -120,13 +120,54 @@ public class WypozyczalniaRowerowApp extends JFrame {
 
     private void setupContentPanel() {
         contentPanel.add(new InteraktywnaMapaPanel(czyAdmin, this), "MAPA");
-        contentPanel.add(new PanelNaszeRowery(), "ROWERY");
+
+        //scroll
+        PanelNaszeRowery panelRowery = new PanelNaszeRowery();
+        JScrollPane scrollRowery = new JScrollPane(panelRowery);
+        scrollRowery.setBorder(null);
+        scrollRowery.getVerticalScrollBar().setUnitIncrement(16);
+        contentPanel.add(scrollRowery, "ROWERY");
 
         JPanel wypozyczeniaWrapper = new JPanel(new BorderLayout());
         contentPanel.add(wypozyczeniaWrapper, "WYPOZYCZENIA");
 
-        contentPanel.add(simplePanel("Kontakt:\nemail: kontakt@rowery.pl\ntel: 123 456 789"), "KONTAKT");
-        contentPanel.add(simplePanel("REGULAMIN\n1. Dbaj o rower.\n2. Zwracaj w terminie."), "REGULAMIN");
+        StringBuilder trescKontakt = new StringBuilder();
+        File plikKontakt = new File("kontakt.txt");
+
+        if (plikKontakt.exists()) {
+            try (BufferedReader br = new BufferedReader(new FileReader(plikKontakt))) {
+                String linia;
+                while ((linia = br.readLine()) != null) {
+                    trescKontakt.append(linia).append("\n");
+                }
+            } catch (IOException e) {
+                trescKontakt.append("Błąd odczytu danych kontaktowych.");
+            }
+        } else {
+            trescKontakt.append("Brak pliku kontakt.txt! Stwórz go w folderze projektu.");
+        }
+
+        contentPanel.add(simplePanel(trescKontakt.toString()), "KONTAKT");
+
+
+        //regulamin
+        StringBuilder trescRegulaminu = new StringBuilder();
+        File plikRegulaminu = new File("regulamin.txt");
+
+        if (plikRegulaminu.exists()) {
+            try (BufferedReader br = new BufferedReader(new FileReader(plikRegulaminu))) {
+                String linia;
+                while ((linia = br.readLine()) != null) {
+                    trescRegulaminu.append(linia).append("\n");
+                }
+            } catch (IOException e) {
+                trescRegulaminu.append("Błąd odczytu regulaminu.");
+            }
+        } else {
+            trescRegulaminu.append("Brak pliku regulamin.txt w folderze projektu.\nUpewnij się, że plik jest obok folderu src.");
+        }
+
+        contentPanel.add(simplePanel(trescRegulaminu.toString()), "REGULAMIN");
 
         odswiezMojeWypozyczenia();
     }
@@ -341,28 +382,64 @@ public class WypozyczalniaRowerowApp extends JFrame {
     }
 
     private JPanel stworzWizualnyRower(Rower r, Wypozyczalnia stacja) {
-        JPanel p = new JPanel(new BorderLayout(15, 0));
-        p.setMaximumSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 15, 80));
-        p.setPreferredSize(new Dimension(RIGHT_SIDEBAR_TARGET_WIDTH - 15, 80));
-        p.setBackground(Color.WHITE);
-        p.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+        // 1. Główna karta
+        JPanel card = new JPanel(new BorderLayout(10, 10));
+        card.setBackground(Color.WHITE);
+        // Zwiększamy nieco wysokość karty (np. do 130), żeby wszystko się ładnie zmieściło
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
+        card.setPreferredSize(new Dimension(0, 160));
 
-        // Ikona (Lewo)
-        ImageIcon icon = new ImageIcon(new ImageIcon(r.getImagePath()).getImage().getScaledInstance(70, 45, Image.SCALE_SMOOTH));
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        p.add(iconLabel, BorderLayout.WEST);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
 
-        // Nazwa (Środek - Wypełnia puste pole)
-        // Usunąłem width:70px, żeby Specialized nie zniknął!
-        JLabel nameLabel = new JLabel("<html><div style='padding-left:10px;'><b>" + r.getModel() + "</b></div></html>");
-        p.add(nameLabel, BorderLayout.CENTER);
+        // 2. OBRAZEK (Lewa strona)
+        ImageIcon icon = new ImageIcon(r.getImagePath());
+        Image img = icon.getImage().getScaledInstance(150, 110, Image.SCALE_SMOOTH);
+        JLabel iconLabel = new JLabel(new ImageIcon(img));
+        // Wyrównanie obrazka do góry
+        iconLabel.setVerticalAlignment(SwingConstants.TOP);
+        card.add(iconLabel, BorderLayout.WEST);
 
-        // Przycisk (Prawo)
-        JButton rentBtn = new JButton(r.isDostepny() ? "Wypożycz" : "Zajęty");
-        rentBtn.setEnabled(r.isDostepny());
-        rentBtn.setPreferredSize(new Dimension(100, 80));
+        // 3. PRAWA STRONA (Panel zawierający Tekst i Przycisk pod spodem)
+        JPanel rightPanel = new JPanel(new BorderLayout(0, 5)); // 5px odstępu między tekstem a przyciskiem
+        rightPanel.setBackground(Color.WHITE);
 
+        // --- TEKST ---
+        // Teraz tekst ma dużo miejsca, więc zwiększamy szerokość w HTML do 160px
+        String opisHtml = "<html><div style='width: 150px;'>" +
+                "<b style='font-size:13px; color:#2c3e50;'>" + r.getModel() + "</b><br>" +
+                "<div style='margin-top:4px; font-size:10px; color:#7f8c8d;'>" + r.getOpis() + "</div>" +
+                "</div></html>";
+
+        JLabel textLabel = new JLabel(opisHtml);
+        textLabel.setVerticalAlignment(SwingConstants.TOP);
+        rightPanel.add(textLabel, BorderLayout.CENTER);
+
+        // --- PRZYCISK ---
+        JButton rentBtn = new JButton(r.isDostepny() ? "WYPOŻYCZ TERAZ" : "OBECNIE ZAJĘTY");
+        rentBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        rentBtn.setFocusPainted(false);
+
+        // Usuwamy obramowanie przycisku dla nowocześniejszego wyglądu (płaski design)
+        rentBtn.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+
+        if (r.isDostepny()) {
+            rentBtn.setBackground(new Color(39, 174, 96)); // Zieleń
+            rentBtn.setForeground(Color.WHITE);
+            rentBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        } else {
+            rentBtn.setBackground(new Color(149, 165, 166)); // Szary
+            rentBtn.setForeground(Color.WHITE);
+            rentBtn.setEnabled(false);
+        }
+
+        rightPanel.add(rentBtn, BorderLayout.SOUTH);
+
+        card.add(rightPanel, BorderLayout.CENTER);
+
+        // Logika przycisku (bez zmian)
         rentBtn.addActionListener(e -> {
             r.setDostepny(false);
             Wypozyczenie nowe = new Wypozyczenie(r, stacja, aktualnyKlient);
@@ -371,17 +448,34 @@ public class WypozyczalniaRowerowApp extends JFrame {
             zapiszWszystkoDoPliku();
             pokazPanelStacji(stacja.getNazwa());
             odswiezMojeWypozyczenia();
+            JOptionPane.showMessageDialog(this, "Wypożyczono rower: " + r.getModel());
         });
-        p.add(rentBtn, BorderLayout.EAST);
 
-        return p;
+        return card;
     }
 
+    // dzieki temu moge uzyc html w regulaminie
     private JPanel simplePanel(String text) {
         JPanel p = new JPanel(new BorderLayout());
-        p.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        JTextArea area = new JTextArea(text);
+        p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Marginesy
+
+        // Zmiana na JEditorPane pozwala używać HTML
+        JEditorPane area = new JEditorPane();
+        area.setContentType("text/html"); // Ważne: tryb HTML
         area.setEditable(false);
+        area.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        area.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Domyślna czcionka
+
+        // Automatyczne dodanie znaczników HTML, jeśli ich nie ma w pliku
+        if (!text.trim().startsWith("<html>")) {
+            text = "<html><body style='font-family: sans-serif; padding: 10px;'>"
+                    + text.replace("\n", "<br>")
+                    + "</body></html>";
+        }
+
+        area.setText(text);
+        area.setCaretPosition(0); // Przewiń na samą górę
+
         p.add(new JScrollPane(area), BorderLayout.CENTER);
         return p;
     }

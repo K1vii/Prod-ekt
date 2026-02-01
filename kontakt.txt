@@ -1,0 +1,93 @@
+<html>
+<body style='font-family: sans-serif; font-size: 12px; padding: 10px;'>
+
+    <h1 style='text-align: center; color: #2c3e50;'>SKONTAKTUJ SIĘ Z NAMI</h1>
+    <hr>
+
+    <div style='background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd;'>
+        <h2 style='margin-top: 0;'>Twoje Rowery Sp. z o.o.</h2>
+        <p>
+            ul. Morska 81/87<br>
+            81-225 Gdynia<br>
+            Polska
+        </p>
+    </div>
+
+    <br>
+
+    <table border='0' width='100%'>
+        <tr>
+            <td>
+                <h3>📞 Infolinia 24h</h3>
+                <p style='color: #27ae60; font-size: 14px;'><b>+48 123 456 789</b></p>
+                <p>Dla zgłoszeń awarii i wypadków.</p>
+            </td>
+            <td>
+                <h3>📧 Adres E-mail</h3>
+                <p><b>kontakt@rowery.pl</b></p>
+                <p>Odpowiadamy w ciągu 24h.</p>
+            </td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <h3>📍 Gdzie nas znaleźć?</h3>
+    <p>
+        Nasze biuro znajduje się przy głównej stacji <b>"Baza rowerów A"</b>.<br>
+        Zapraszamy od poniedziałku do piątku w godzinach <b>8:00 - 16:00</b>.
+    </p>
+
+    <br>
+    <div style='text-align: center; background-color: #e8f6f3; padding: 10px;'>
+        <i>Masz problem z aplikacją? Zadzwoń do administratora!</i>
+    </div>
+
+</body>
+</html><html>
+       <body style='font-family: sans-serif; font-size: 12px; padding: 10px;'>
+
+           <h1 style='text-align: center; color: #2c3e50;'>SKONTAKTUJ SIĘ Z NAMI</h1>
+           <hr>
+
+           <div style='background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd;'>
+               <h2 style='margin-top: 0;'>Twoje Rowery Sp. z o.o.</h2>
+               <p>
+                   ul. Morska 81/87<br>
+                   81-225 Gdynia<br>
+                   Polska
+               </p>
+           </div>
+
+           <br>
+
+           <table border='0' width='100%'>
+               <tr>
+                   <td>
+                       <h3>📞 Infolinia 24h</h3>
+                       <p style='color: #27ae60; font-size: 14px;'><b>+48 123 456 789</b></p>
+                       <p>Dla zgłoszeń awarii i wypadków.</p>
+                   </td>
+                   <td>
+                       <h3>📧 Adres E-mail</h3>
+                       <p><b>kontakt@rowery.pl</b></p>
+                       <p>Odpowiadamy w ciągu 24h.</p>
+                   </td>
+               </tr>
+           </table>
+
+           <hr>
+
+           <h3>📍 Gdzie nas znaleźć?</h3>
+           <p>
+               Nasze biuro znajduje się przy głównej stacji <b>"Baza rowerów A"</b>.<br>
+               Zapraszamy od poniedziałku do piątku w godzinach <b>8:00 - 16:00</b>.
+           </p>
+
+           <br>
+           <div style='text-align: center; background-color: #e8f6f3; padding: 10px;'>
+               <i>Masz problem z aplikacją? Zadzwoń do administratora!</i>
+           </div>
+
+       </body>
+       </html>
