@@ -1,50 +1,75 @@
-
 import javax.swing.*;
 import java.awt.*;
 
 public class PanelNaszeRowery extends JPanel {
 
     public PanelNaszeRowery() {
-        setLayout(new GridBagLayout());
+        // Ustawienia wizualne kontener listy
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(Color.WHITE);
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(20, 20, 20, 20);
-        gbc.fill = GridBagConstraints.NONE;
+        // Katalog rowerów
 
-        // ===== GÓRA =====
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        add(kartaRoweru("Rower miejski", "rower1.jfif"), gbc);
+        add(kartaRoweru("Rower Miejski Gazelle", "rower1.png",
+                "Idealny towarzysz do codziennych dojazdów do pracy czy szkoły. <br>" +
+                        "Posiada wygodne, szerokie siodełko oraz pojemny <b>koszyk na zakupy</b>. " +
+                        "Wyposażony w pełne oświetlenie LED i błotniki."));
 
-        gbc.gridx = 1;
-        add(kartaRoweru("Rower górski", "rower2.jfif"), gbc);
+        add(Box.createVerticalStrut(30));
 
-        // ===== DÓŁ (ŚRODEK) =====
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 2; // zajmuje 2 kolumny
-        gbc.anchor = GridBagConstraints.CENTER;
+        add(kartaRoweru("Góral Kross Hexagon", "rower2.png",
+                "Stworzony do jazdy w trudnym terenie. <br>" +
+                        "Szerokie opony z głębokim bieżnikiem i <b>przedni amortyzator</b> " +
+                        "zapewniają przyczepność na piasku i błocie. Lekka aluminiowa rama."));
 
-        add(kartaRoweru("Rower elektryczny", "rower3.jfif"), gbc);
+        add(Box.createVerticalStrut(30));
+
+        add(kartaRoweru("E-Bike Specialized", "rower3.png",
+                "Nowoczesny rower ze wspomaganiem elektrycznym.<br>" +
+                        "Bateria pozwala przejechać nawet <b>100 km</b> na jednym ładowaniu. " +
+                        "Świetny wybór dla osób, które chcą unikać zmęczenia na podjazdach."));
+
+        add(Box.createVerticalStrut(30));
+
+        add(kartaRoweru("Szosa Trek Domane+", "rower4.png",
+                "Połączenie klasycznej kolarzówki z dyskretnym silnikiem elektrycznym.<br>" +
+                        "Karbonowa rama, <b>kierownica typu baranek</b> i hydrauliczne hamulce tarczowe. " +
+                        "Najszybszy rower w naszej ofercie, idealny na asfalt."));
+
+        add(Box.createVerticalGlue());
     }
 
-    private JPanel kartaRoweru(String nazwa, String imagePath) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout(0, 10));
-        panel.setBackground(Color.WHITE);
+    // Cały opis rowerka w sidebarze
+    private JPanel kartaRoweru(String nazwa, String imagePath, String opisHtml) {
+        JPanel card = new JPanel(new BorderLayout(25, 0));
+        card.setBackground(Color.WHITE);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
+        card.setPreferredSize(new Dimension(0, 220));
+
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
 
         ImageIcon icon = new ImageIcon(imagePath);
-        Image img = icon.getImage().getScaledInstance(280, 180, Image.SCALE_SMOOTH);
+        Image img = icon.getImage().getScaledInstance(260, 190, Image.SCALE_SMOOTH);
         JLabel imageLabel = new JLabel(new ImageIcon(img));
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel.setBorder(BorderFactory.createLineBorder(new Color(240, 240, 240)));
+        card.add(imageLabel, BorderLayout.WEST);
 
-        JLabel label = new JLabel(nazwa, SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 16));
+        String htmlContent = "<html>" +
+                "<body style='width: 350px;'>" +
+                "<h1 style='color: #2c3e50; margin-bottom: 10px; font-family: sans-serif; font-size: 18px;'>" + nazwa + "</h1>" +
+                "<div style='font-family: sans-serif; font-size: 13px; color: #555; line-height: 1.5;'>" +
+                opisHtml +
+                "</div>" +
+                "</body></html>";
 
-        panel.add(imageLabel, BorderLayout.CENTER);
-        panel.add(label, BorderLayout.SOUTH);
+        JLabel textLabel = new JLabel(htmlContent);
+        textLabel.setVerticalAlignment(SwingConstants.TOP);
+        card.add(textLabel, BorderLayout.CENTER);
 
-        return panel;
+        return card;
     }
 }
