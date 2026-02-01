@@ -31,13 +31,13 @@ public class WypozyczalniaRowerowApp extends JFrame {
 
     private final int SIDEBAR_EXPANDED = 200;
     private final int SIDEBAR_COLLAPSED = 50;
-    private final int RIGHT_SIDEBAR_TARGET_WIDTH = 300;
+    private final int RIGHT_SIDEBAR_TARGET_WIDTH = 350;
 
     public WypozyczalniaRowerowApp(boolean czyAdmin, String imie, String nazwisko) {
         this.czyAdmin = czyAdmin;
 
         setTitle("System Rowerowy - " + (czyAdmin ? "ADMIN" : "UŻYTKOWNIK"));
-        setSize(1100, 700);
+        setSize(1325, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -418,7 +418,7 @@ public class WypozyczalniaRowerowApp extends JFrame {
         rightPanel.add(textLabel, BorderLayout.CENTER);
 
         // --- PRZYCISK ---
-        JButton rentBtn = new JButton(r.isDostepny() ? "WYPOŻYCZ TERAZ" : "OBECNIE ZAJĘTY");
+        JButton rentBtn = new JButton(r.isDostepny() ? "WYPOŻYCZ" : "OBECNIE ZAJĘTY");
         rentBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
         rentBtn.setFocusPainted(false);
 
