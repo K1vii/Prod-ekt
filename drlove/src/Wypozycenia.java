@@ -2,27 +2,26 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-// Klasa reprezentująca wpis w historii (DTO - Data Transfer Object)
+// Wypozyczenia
 class Wypozyczenie {
     private Rower rower;
     private Wypozyczalnia wypozyczalnia;
-    private Klient klient; // <--- DODAJ TO POLE
+    private Klient klient;
 
     public Wypozyczenie(Rower rower, Wypozyczalnia wypozyczalnia, Klient klient) {
         this.rower = rower;
         this.wypozyczalnia = wypozyczalnia;
-        this.klient = klient; // <--- PRZYPISZ KLIENTA
+        this.klient = klient;
     }
 
-    // Dodaj gettera, żeby Admin mógł go odczytać
+    // Gettery do obsługi logiki Admina i plików
     public Klient getKlient() { return klient; }
-
     public Rower getRower() { return rower; }
     public Wypozyczalnia getWypozyczalnia() { return wypozyczalnia; }
     public Wypozyczalnia getStacja() { return wypozyczalnia; }
 }
 
-// Klasa Klient
+// Klient
 class Klient {
     private String imie;
     private String nazwisko;
@@ -32,9 +31,11 @@ class Klient {
         this.imie = imie;
         this.nazwisko = nazwisko;
     }
+
     public String getImie() { return imie; }
     public String getNazwisko() { return nazwisko; }
 
+    // Zarządzanie listą rowerów klienta
     public List<Wypozyczenie> getMojeWypozyczenia() {
         return mojeWypozyczenia;
     }
@@ -47,7 +48,7 @@ class Klient {
         mojeWypozyczenia.remove(w);
     }
 
-    // Sprawdzenie czy rower o danym ID jest już u tego klienta
+    // check if douplicates
     public boolean czyPosiadaRower(int id) {
         for (Wypozyczenie w : mojeWypozyczenia) {
             if (w.getRower().getId() == id) return true;

@@ -7,67 +7,50 @@ import javax.swing.*;
 
 public class InteraktywnaMapaPanel extends JPanel {
     private WypozyczalniaRowerowApp parentApp;
-
     private Image mapa;
     private ImageIcon markerIcon;
     private boolean czyAdmin;
 
-    // Rozmiar bazowy, dla którego ustaliłeś oryginalne współrzędne (470, 140 itd.)
     private final int BASE_WIDTH = 800;
     private final int BASE_HEIGHT = 600;
-
-    // Lista do przechowywania danych o markerach, aby móc je przeliczać
     private final List<MarkerData> listaMarkerow = new ArrayList<>();
 
     public InteraktywnaMapaPanel(boolean czyAdmin, WypozyczalniaRowerowApp parentApp) {
         this.parentApp = parentApp;
         this.czyAdmin = czyAdmin;
-        this.setLayout(null); // Pozostajemy przy null, ale będziemy nim zarządzać
+        this.setLayout(null);
         this.setPreferredSize(new Dimension(BASE_WIDTH, BASE_HEIGHT));
 
+        // Wczyty  obrazków
         this.mapa = new ImageIcon("mapa.png").getImage();
-
-        //marker i przeskalowanie go
         ImageIcon originalIcon = new ImageIcon("marker_icon.png");
         Image scaledImage = originalIcon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
         this.markerIcon = new ImageIcon(scaledImage);
 
-        // Dodajemy dane markerów do listy
+        // stacje
         dodajMarker("Baza rowerów A", 750, 270);
         dodajMarker("Baza rowerów B", 250, 155);
         dodajMarker("Baza rowerów C", 330, 450);
 
-        // KLUCZ: Listener, który reaguje na zmianę rozmiaru panelu (np. przy wysuwaniu paska)
+        // Listener do przeliczania pozycji przy zmianie rozmiaru okna
         this.addComponentListener(new ComponentAdapter() {
             @Override
-            public void componentResized(ComponentEvent e) {
-                aktualizujPozycjeMarkerow();
-            }
+            public void componentResized(ComponentEvent e) { aktualizujPozycjeMarkerow(); }
         });
     }
 
     private void dodajMarker(String nazwa, int x, int y) {
         JButton markerBtn = new JButton(this.markerIcon);
-
-        markerBtn.setContentAreaFilled(false); // Wyłącza malowanie tła przycisku
-        markerBtn.setBorderPainted(false);     // Wyłącza ramkę dookoła
-        markerBtn.setFocusPainted(false);      // Wyłącza linię zaznaczenia po kliknięciu
-
-        markerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // kursor rączki
+        markerBtn.setContentAreaFilled(false);
+        markerBtn.setBorderPainted(false);
+        markerBtn.setFocusPainted(false);
+        markerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         markerBtn.addActionListener((e) -> {
-            System.out.println(">>> KLIKNIĘTO MARKER: " + nazwa); // LOG 1
-
             if (this.czyAdmin) {
-                System.out.println(">>> TRYB ADMIN: Pokazuję okno dialogowe");
                 JOptionPane.showMessageDialog(this, "Tryb Administratora: " + nazwa);
             } else {
-                if (parentApp != null) {
-                    System.out.println(">>> TRYB USER: Wywołuję pokazPanelStacji()");
-                    parentApp.pokazPanelStacji(nazwa);
-                } else {
-                    System.err.println(">>> BŁĄD: parentApp jest NULL! Zapomniałeś przekazać 'this' w konstruktorze mapy?");
-                }
+                if (parentApp != null) parentApp.pokazPanelStacji(nazwa);
             }
         });
 
@@ -78,8 +61,6 @@ public class InteraktywnaMapaPanel extends JPanel {
     private void aktualizujPozycjeMarkerow() {
         double scaleX = (double) getWidth() / BASE_WIDTH;
         double scaleY = (double) getHeight() / BASE_HEIGHT;
-
-        // Zabezpieczenie: jeśli ikona się nie załadowała, dajemy domyślny rozmiar 32x32
         int w = (markerIcon.getIconWidth() <= 0) ? 32 : markerIcon.getIconWidth();
         int h = (markerIcon.getIconHeight() <= 0) ? 32 : markerIcon.getIconHeight();
 
@@ -87,29 +68,20 @@ public class InteraktywnaMapaPanel extends JPanel {
             int newX = (int) (data.baseX * scaleX);
             int newY = (int) (data.baseY * scaleY);
             data.button.setBounds(newX - w / 2, newY - h, w, h);
-            System.out.println("Pozycjonowanie markera: " + data.button.getToolTipText() + " na: " + newX + "," + newY);
         }
     }
-
+//
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (this.mapa != null) {
-            // Skalowanie mapy do pełnego rozmiaru panelu
             g.drawImage(this.mapa, 0, 0, getWidth(), getHeight(), this);
         }
     }
 
-    // Klasa pomocnicza do przechowywania danych o markerze
     private static class MarkerData {
         JButton button;
-        int baseX;
-        int baseY;
-
-        MarkerData(JButton button, int x, int y) {
-            this.button = button;
-            this.baseX = x;
-            this.baseY = y;
-        }
+        int baseX, baseY;
+        MarkerData(JButton b, int x, int y) { this.button = b; this.baseX = x; this.baseY = y; }
     }
 }
