@@ -1,0 +1,52 @@
+<html>
+<body style='font-family: sans-serif; font-size: 11px; padding: 10px;'>
+
+    <h1 style='text-align: center; color: #2c3e50;'>REGULAMIN WYPOŻYCZALNI ROWERÓW MIEJSKICH</h1>
+    <hr>
+
+    <h3 style='background-color: #f0f0f0; padding: 5px;'>§1. POSTANOWIENIA OGÓLNE</h3>
+    <p>
+        1. Niniejszy Regulamin określa zasady korzystania z systemu Wypożyczalni Rowerów.<br>
+        2. Operatorem systemu jest firma <b>"Twoje Rowery Sp. z o.o."</b>.<br>
+        3. Użytkownikiem może być każda osoba, która zarejestrowała konto w Aplikacji.
+    </p>
+
+    <h3 style='background-color: #f0f0f0; padding: 5px;'>§2. ZASADY WYPOŻYCZANIA</h3>
+    <p>
+        1. Wypożyczenie roweru następuje poprzez kliknięcie przycisku <b>"Wypożycz"</b> w Aplikacji.<br>
+        2. Warunkiem wypożyczenia jest dostępność roweru na danej Stacji Bazowej.<br>
+        3. Użytkownik przed wypożyczeniem zobowiązany jest upewnić się, że rower nie posiada widocznych uszkodzeń (np. przebita opona, brak łańcucha).<br>
+        4. W przypadku stwierdzenia usterki, należy niezwłocznie zgłosić ten fakt w zakładce <b>Kontakt</b>.
+    </p>
+
+    <h3 style='background-color: #f0f0f0; padding: 5px;'>§3. UŻYTKOWANIE I ZWROT</h3>
+    <p>
+        1. Rower może być używany wyłącznie zgodnie z jego przeznaczeniem, na drogach publicznych i ścieżkach rowerowych.<br>
+        2. Zabrania się:<br>
+        &nbsp;&nbsp;&nbsp;a) Przewożenia osób trzecich (chyba że rower jest do tego przystosowany).<br>
+        &nbsp;&nbsp;&nbsp;b) Używania roweru pod wpływem alkoholu lub środków odurzających.<br>
+        &nbsp;&nbsp;&nbsp;c) Pozostawiania roweru bez zabezpieczenia w miejscach publicznych.<br>
+        3. Zwrot roweru następuje poprzez kliknięcie przycisku <b>"Zwróć"</b> w zakładce "Moje Wypożyczenia".<br>
+        4. Zwrot musi nastąpić w obrębie jednej z oficjalnych Stacji (<b>Baza A, Baza B lub Baza C</b>).
+    </p>
+
+    <h3 style='background-color: #f0f0f0; padding: 5px;'>§4. OPŁATY I KARY</h3>
+    <p>
+        1. Korzystanie z systemu jest płatne zgodnie z aktualnym Cennikiem (dostępnym na stronie www).<br>
+        2. W przypadku nieoddania roweru w terminie <b>24h</b> od wypożyczenia, naliczona zostanie opłata dodatkowa.<br>
+        3. Użytkownik ponosi pełną odpowiedzialność materialną za kradzież lub zniszczenie roweru wynikające z jego winy.
+    </p>
+
+    <h3 style='background-color: #f0f0f0; padding: 5px;'>§5. RODO I DANE OSOBOWE</h3>
+    <p>
+        1. Administratorem danych osobowych jest Operator.<br>
+        2. Dane (Imię, Nazwisko) przetwarzane są wyłącznie w celu realizacji usługi wypożyczenia.
+    </p>
+
+    <br>
+    <center style='color: gray; font-size: 10px;'>
+        <i>Ostatnia aktualizacja: 2026</i>
+    </center>
+
+</body>
+</html>
